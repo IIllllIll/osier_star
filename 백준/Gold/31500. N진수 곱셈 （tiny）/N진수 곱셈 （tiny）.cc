@@ -4,89 +4,70 @@ using namespace std;
 #define x first
 #define y second
 
-void fft(vector<complex<long double>> &v, bool inv) {
-  int n = v.size();
-  for(int i=1, j=0; i<n; i++) {
-    int b = n/2;
-    while(j >= b) {
-      j -= b;
-      b /= 2;
+long long Pow(long long a, long long n, long long mod){
+  long long ans = 1;
+  while(n){
+    if(n%2==1){
+      ans*=a;
+      ans%=mod;
     }
-    j += b;
-    if(i < j) swap(v[i], v[j]);
-  }
-  for(int k=1; k<n; k*=2) {
-    long double th = (inv ? acos(-1)/k : -acos(-1)/k);
-    complex<long double> w(cos(th), sin(th));
-    for(int i=0; i<n; i+=k*2) {
-      complex<long double> z(1, 0);
-      for(int j=0; j<k; j++) {
-        complex<long double> even = v[i+j];
-        complex<long double> odd = v[i+j+k];
-        v[i+j] = even + z*odd;
-        v[i+j+k] = even - z*odd;
-        z *= w;
-      }
-    }
-  }
-  if(inv)
-    for(int i=0; i<n; i++) v[i] /= n;
-}
-
-vector<long long> multiply(vector<long long> &a,vector<long long> &b,vector<long long> &ans){
-  int n=1;
-  while(n<max(a.size(),b.size())) n*=2;
-
-  vector<complex<long double>> v(a.begin(),a.end());
-  vector<complex<long double>> u(b.begin(),b.end());
-  v.resize(n);
-  u.resize(n);
-
-  fft(v,0);
-  fft(u,0);
-
-  for(int i=0; i<n; i++){
-    v[i] *= u[i];
-  }
-  fft(v,1);
-
-  ans.resize(n);
-  for(int i=0; i<ans.size(); i++){
-    ans[i] = round(v[i].real());
+    a = (a*a)%mod;
+    n/=2;
   }
   return ans;
 }
 
-int mx=1;
-vector<long long> v1,v2,u1,u2,ans1;
+void fft(vector<long long> &v, bool inv){
+  long long n = v.size();
+
+  long long w = 5;
+  long long mod = 2281701377;
+  long long a = Pow(w,(mod-1)/n,mod);
+  if(inv) a = Pow(a,mod-2,mod);
+  vector<long long> root;
+  root.push_back(1);
+  for(int i=1; i<n/2; i++)
+    root.push_back((root[i-1]*a)%mod);
+
+  for(int i=0; i<n; i++){
+    int j=0;
+    int temp = i;
+    for(int k=1; k<n; k*=2){
+      j*=2;
+      if(temp%2==1) j++;
+      temp/=2;
+    }
+    if(i<j) swap(v[i],v[j]);
+  }
+
+  for(int i=2; i<=n; i*=2){
+    int del = n/i;
+    for(int j=0; j<n; j+=i){
+      for(int k=0; k<i/2; k++){
+        long long even = v[j+k];
+        long long odd = v[j+k+(i/2)]*root[del*k]%mod;
+        v[j+k] = (even+odd)%mod;
+        v[j+k+(i/2)] = (even-odd)%mod;
+        if(v[j+k+(i/2)]<0) v[j+k+(i/2)]+=mod;
+      }
+    }
+  }
+
+  long long t = Pow(n,mod-2,mod);
+  if(inv) {
+    for(int i=0; i<n; i++) v[i] = (v[i]*t)%mod;
+  }
+}
 
 vector<long long> time(vector<long long> &a, vector<long long> &b){
-  v1.resize(mx,0);
-  v2.resize(mx,0);
-  u1.resize(mx,0);
-  u2.resize(mx,0);
-  vector<long long> ans(a.size()+b.size()-1,0);
-  for(int i=0; i<mx; i++){
-    v1[i] = a[i]&((1<<10)-1);
-    v2[i] = a[i]>>10;
-    u1[i] = b[i]&((1<<10)-1);
-    u2[i] = b[i]>>10;
+  vector<long long> ans(a.size()+b.size()-1);
+  for(int i=0; i<b.size(); i++){
+    for(int j=0; j<a.size(); j++){
+      if(ans[i+j]==0) ans[i+j] = b[i]*a[j];
+      else ans[i+j] += b[i]*a[j];
+    }
+      
   }
-  
-  multiply(v1,u1,ans1);
-  for(int i=0; i<ans.size(); i++)
-    ans[i] += ans1[i];
-  multiply(v2,u1,ans1);
-  for(int i=0; i<ans.size(); i++)
-    ans[i] += ans1[i]<<10;
-  multiply(v1,u2,ans1);
-  for(int i=0; i<ans.size(); i++)
-    ans[i] += ans1[i]<<10;
-  multiply(v2,u2,ans1);
-  for(int i=0; i<ans.size(); i++)
-    ans[i] += ans1[i]<<20;
-  
-  
   return ans;
 }
 
@@ -100,8 +81,10 @@ void solve(){
 
   string a,b;
   cin>>a>>b;
+
   vector<long long> v;
   vector<long long> u;
+  
   if(a[0]=='~'^b[0]=='~') flag = true;
   for(int i=0; i<a.size(); i++){
     if(a[i]=='~') continue;
@@ -118,18 +101,13 @@ void solve(){
     // else
     u.push_back((b[i]-'!'));
   }
-  while(mx<v.size()+u.size()) 
-    mx<<=1;
-  int vsize = v.size();
-  int usize = u.size();
-  v.resize(mx);
-  u.resize(mx);
+  
 
   vector<long long> cnt = time(v,u);
   vector<long long> ans;
 
   if(!sign){
-    for(int i=vsize+usize-2; i>=0; i--){
+    for(int i=cnt.size()-1; i>=0; i--){
       if(i==0){
         long long temp = cnt[i];
         while(temp>0){
@@ -156,7 +134,7 @@ void solve(){
   }
   else{
 
-    for(int i=vsize+usize-2; i>=0; i--){
+    for(int i=cnt.size()-1; i>=0; i--){
       if(i==0){
         long long temp = cnt[i];
         while(temp!=0){
