@@ -86,20 +86,7 @@ vector<long long> time(vector<long long> &a, vector<long long> &b){
   for(int i=0; i<ans.size(); i++)
     ans[i] += ans1[i]<<20;
   
-  v1.clear();
-  v1.shrink_to_fit();
-
-  v2.clear();
-  v2.shrink_to_fit();
-
-  u1.clear();
-  u1.shrink_to_fit();
-
-  u2.clear();
-  u2.shrink_to_fit();
-
-  ans1.clear();
-  ans1.shrink_to_fit();
+  
   return ans;
 }
 
