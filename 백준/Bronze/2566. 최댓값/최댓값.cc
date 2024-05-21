@@ -1,15 +1,31 @@
-#include<stdio.h>
+#include<bits/stdc++.h>
+using namespace std;
+#define point pair<long long, long long>
+#define x first
+#define y second
 
-int main()
-{
-    int n[9][9], mx=0, res;
-    for(int i=0; i<81; i++){
-        scanf("%d", &n[i/9][i%9]);
-        if(mx<=n[i/9][i%9]){
-            mx=n[i/9][i%9];
-            res=i;
-        }
+void solve(){
+  int a=0,b=0,ans=-1;
+  for(int i=1; i<=9; i++){
+    for(int j=1; j<=9; j++){
+      int c;
+      cin>>c;
+      if(c>ans){
+        ans = c;
+        a = i;
+        b = j;
+      }
     }
-    printf("%d\n%d %d", mx, res/9+1, res%9+1);
-    return 0;
+  }
+  cout<<ans<<'\n'<<a<<' '<<b;
+  return;
+}
+
+int main(){
+  ios_base::sync_with_stdio(0);
+  cin.tie(0); cout.tie(0);
+  int ct=1;
+  //cin>>ct;
+  while(ct--) solve();
+  return 0;
 }
