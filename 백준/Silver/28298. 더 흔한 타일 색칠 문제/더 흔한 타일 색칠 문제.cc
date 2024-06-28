@@ -1,60 +1,55 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <stack>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <tuple>
+
 using namespace std;
-#define point pair<long long, long long>
-#define x first
-#define y second
 
-int check[500][500][26];
-int mp[500][500];
-int flag[500][500];
-
-void solve(){
-  int n,m,k;
-  int ans=0;
-  cin>>n>>m>>k;
-  for(int i=0; i<n; i++){
-    for(int j=0; j<m; j++){
-      char a;
-      cin>>a;
-      check[i%k][j%k][a-'A']++;
-      mp[i][j] = a-'A';
-    }
-  }
-  for(int i=0; i<k; i++){
-    for(int j=0; j<k; j++){
-      int mx=0,idx=0;
-      for(int p=0; p<26; p++){
-        if(mx<check[i][j][p]){
-          mx = check[i][j][p];
-          idx = p;
-        }
-      }
-      flag[i][j] = idx;
-    }
-  }
-  for(int i=0; i<n; i++){
-    for(int j=0; j<m; j++){
-      if(mp[i][j]!=flag[i%k][j%k]){
-        ans++;
-        mp[i][j] = flag[i%k][j%k];
+int main()
+{
+    std::cin.tie(NULL);
+    ios_base::sync_with_stdio(false);
+    
+    int n, m, k;
+    cin >> n >> m >> k;
+    
+    int cnt[500][500][26] = {};
+    int max_n[500][500] = {};
+    for(int i=0; i<500; i++)
+      for(int j=0; j<500; j++)
+        max_n[i][j]='A';
+    for(int i=0; i<n; i++)
+    {
+        string s;
+        cin >> s;
         
-      }
+        for(int j=0; j<m; j++)
+        {
+            cnt[i%k][j%k][s[j]-'A']++;
+            if(cnt[i%k][j%k][max_n[i%k][j%k]-'A'] < cnt[i%k][j%k][s[j]-'A']) max_n[i%k][j%k] = s[j];
+        }
     }
-  }
-  cout<<ans<<'\n';
-  for(int i=0; i<n; i++){
-    for(int j=0; j<m; j++)
-      cout<<(char)(mp[i][j]+'A');
-    cout<<'\n';
-  }
-  return;
-}
-
-int main(){
-  ios_base::sync_with_stdio(0);
-  cin.tie(0); cout.tie(0);
-  int ct=1;
-  //cin>>ct;
-  while(ct--) solve();
-  return 0;
+    
+    int sum = 0;
+    
+    for(int i=0; i<k; i++)
+    {
+        for(int j=0; j<k; j++) 
+          sum += n * m / k / k - cnt[i][j][max_n[i][j]-'A'];
+    }
+    
+    cout << sum << "\n";
+    
+    for(int i=0; i<n; i++)
+    {
+        for(int j=0; j<m; j++) cout << static_cast<char>(max_n[i%k][j%k]);
+        cout << "\n";
+    }
+    
+    return 0;
 }
